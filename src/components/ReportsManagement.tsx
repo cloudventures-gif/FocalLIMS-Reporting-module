@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BarChart3, Plus, Search, Filter, Calendar, FileText, Edit, Copy, Trash2, Eye } from 'lucide-react';
 import { ReportConfig } from '../types';
 import { format } from 'date-fns';
+import { Toast } from './Toast';
 
 interface ReportsManagementProps {
   reports: ReportConfig[];
@@ -37,6 +38,15 @@ export function ReportsManagement({
   const [showModuleSelector, setShowModuleSelector] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'success',
+    isVisible: false,
+  });
 
   const filteredReports = reports.filter(report => {
     const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,6 +73,18 @@ export function ReportsManagement({
     if (daysSinceUpdate < 7) return 'bg-green-100 text-green-800';
     if (daysSinceUpdate < 30) return 'bg-yellow-100 text-yellow-800';
     return 'bg-gray-100 text-gray-800';
+  };
+
+  const handleDeleteReport = (reportId: string) => {
+    const reportToDelete = reports.find(r => r.id === reportId);
+    onDeleteReport(reportId);
+    
+    // Show success toast
+    setToast({
+      message: `Report "${reportToDelete?.name || 'Untitled Report'}" has been deleted successfully`,
+      type: 'success',
+      isVisible: true,
+    });
   };
 
   return (
@@ -205,7 +227,7 @@ export function ReportsManagement({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDeleteReport(report.id);
+                      handleDeleteReport(report.id);
                     }}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-md"
                     title="Delete Report"
@@ -312,6 +334,14 @@ export function ReportsManagement({
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 }

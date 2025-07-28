@@ -11,6 +11,7 @@ import { SavedReports } from './SavedReports';
 import { SaveReportModal } from './SaveReportModal';
 import { SchedulingModal } from './SchedulingModal';
 import { ReportsManagement } from './ReportsManagement';
+import { Toast } from './Toast';
 
 const defaultColumns: ReportColumn[] = [
   { id: 'col-1', fieldId: 'sample_id', label: 'Sample ID', width: 150, sortable: true, visible: true },
@@ -45,6 +46,15 @@ export function ReportingModule() {
   const [showReportsManagement, setShowReportsManagement] = useState(true);
   const [selectedModule, setSelectedModule] = useState<string>('');
   const [viewMode, setViewMode] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'success',
+    isVisible: false,
+  });
 
   // Create current report config
   const reportConfig: ReportConfig = {
@@ -128,10 +138,18 @@ export function ReportingModule() {
   }, []);
 
   const handleDeleteReport = useCallback((reportId: string) => {
+    const reportToDelete = savedReports.find(r => r.id === reportId);
     setSavedReports(prev => prev.filter(r => r.id !== reportId));
     if (currentReport?.id === reportId) {
       setCurrentReport(null);
     }
+    
+    // Show success toast
+    setToast({
+      message: `Report "${reportToDelete?.name || 'Untitled Report'}" has been deleted successfully`,
+      type: 'success',
+      isVisible: true,
+    });
   }, [currentReport]);
 
   const handleRenameReport = useCallback((reportId: string, newName: string) => {
@@ -464,6 +482,14 @@ export function ReportingModule() {
         onClose={() => setIsSchedulingModalOpen(false)}
         report={reportToSchedule || reportConfig}
         onSchedule={handleScheduleSubmit}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
       />
     </div>
   );

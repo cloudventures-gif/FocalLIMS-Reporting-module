@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Save, Copy, Trash2, Edit, Calendar, Play } from 'lucide-react';
 import { ReportConfig } from '../types';
 import { format } from 'date-fns';
+import { Toast } from './Toast';
 
 interface SavedReportsProps {
   reports: ReportConfig[];
@@ -29,6 +30,15 @@ export function SavedReports({
   const [newReportDescription, setNewReportDescription] = useState('');
   const [editingReport, setEditingReport] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'success',
+    isVisible: false,
+  });
 
   const handleSaveNewReport = () => {
     if (newReportName.trim()) {
@@ -52,8 +62,21 @@ export function SavedReports({
     setEditName(report.name);
   };
 
+  const handleDeleteReport = (reportId: string) => {
+    const reportToDelete = reports.find(r => r.id === reportId);
+    onDelete(reportId);
+    
+    // Show success toast
+    setToast({
+      message: `Report "${reportToDelete?.name || 'Untitled Report'}" has been deleted successfully`,
+      type: 'success',
+      isVisible: true,
+    });
+  };
+
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Saved Reports</h3>
         <button
@@ -165,7 +188,7 @@ export function SavedReports({
                 </button>
                 
                 <button
-                  onClick={() => onDelete(report.id)}
+                  onClick={() => handleDeleteReport(report.id)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-md"
                   title="Delete Report"
                 >
@@ -243,6 +266,15 @@ export function SavedReports({
           </div>
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
+      />
+    </>
   );
 }
