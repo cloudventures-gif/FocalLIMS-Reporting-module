@@ -112,18 +112,63 @@ export function ReportingModule() {
   }, []);
 
   const handleSaveReport = useCallback((name: string, description?: string) => {
-    const newReport: ReportConfig = {
-      ...reportConfig,
-      id: `rpt-${Date.now()}`,
-      name,
-      description,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    if (currentReport) {
+      // Update existing report
+      const updatedReport: ReportConfig = {
+        ...reportConfig,
+        id: currentReport.id,
+        name: name || currentReport.name,
+        description: description !== undefined ? description : currentReport.description,
+        createdAt: currentReport.createdAt,
+        updatedAt: new Date().toISOString(),
+      };
 
-    setSavedReports(prev => [...prev, newReport]);
-    setCurrentReport(newReport);
-  }, [reportConfig]);
+      setSavedReports(prev => 
+        prev.map(report => 
+          report.id === currentReport.id ? updatedReport : report
+        )
+      );
+      setCurrentReport(updatedReport);
+
+      // Show success toast
+      setToast({
+        message: `Report "${updatedReport.name}" has been updated successfully`,
+        type: 'success',
+        isVisible: true,
+      });
+    } else {
+      // Create new report
+      const newReport: ReportConfig = {
+        ...reportConfig,
+        id: `rpt-${Date.now()}`,
+        name,
+        description,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      setSavedReports(prev => [...prev, newReport]);
+      setCurrentReport(newReport);
+
+      // Show success toast
+      setToast({
+        message: `Report "${newReport.name}" has been saved successfully`,
+        type: 'success',
+        isVisible: true,
+      });
+    }
+  }, [reportConfig, currentReport]);
+
+  const handleDirectSave = useCallback(() => {
+    if (currentReport) {
+      // Directly update existing report
+      handleSaveReport(currentReport.name, currentReport.description);
+    } else {
+      // Show modal for new report
+      setIsSaveModalOpen(true);
+    }
+  }, [currentReport, handleSaveReport]);
+
 
   const handleCloneReport = useCallback((report: ReportConfig) => {
     const clonedReport: ReportConfig = {
@@ -361,11 +406,11 @@ export function ReportingModule() {
                   
                   <div className="relative">
                     <button
-                      onClick={() => setIsSaveModalOpen(true)}
+                      onClick={handleDirectSave}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                     >
                       <SaveIcon size={16} />
-                      Save
+                      {currentReport ? 'Update' : 'Save'}
                     </button>
                   </div>
                 </>
