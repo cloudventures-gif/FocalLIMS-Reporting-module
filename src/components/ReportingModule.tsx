@@ -8,6 +8,7 @@ import { FilterBuilder } from './FilterBuilder';
 import { ReportTable } from './ReportTable';
 import { ExportModal } from './ExportModal';
 import { SavedReports } from './SavedReports';
+import { SaveReportModal } from './SaveReportModal';
 import { SchedulingModal } from './SchedulingModal';
 import { ReportsManagement } from './ReportsManagement';
 
@@ -37,6 +38,7 @@ export function ReportingModule() {
   const [savedReports, setSavedReports] = useState(initialSavedReports);
   const [activeTab, setActiveTab] = useState<'columns' | 'filters'>('columns');
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isSchedulingModalOpen, setIsSchedulingModalOpen] = useState(false);
   const [reportToSchedule, setReportToSchedule] = useState<ReportConfig | null>(null);
   const [showSavedReports, setShowSavedReports] = useState(false);
@@ -341,10 +343,7 @@ export function ReportingModule() {
                   
                   <div className="relative">
                     <button
-                      onClick={() => {
-                        const name = prompt('Enter report name:');
-                        if (name) handleSaveReport(name);
-                      }}
+                      onClick={() => setIsSaveModalOpen(true)}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                     >
                       <SaveIcon size={16} />
@@ -443,6 +442,13 @@ export function ReportingModule() {
           </div>
         </div>
       </div>
+
+      {/* Export Modal */}
+      <SaveReportModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={handleSaveReport}
+      />
 
       {/* Export Modal */}
       <ExportModal
